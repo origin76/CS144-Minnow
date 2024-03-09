@@ -1,6 +1,7 @@
 #pragma once
 
 #include "byte_stream.hh"
+#include<set>
 
 class Reassembler
 {
@@ -33,6 +34,10 @@ public:
   // How many bytes are stored in the Reassembler itself?
   uint64_t bytes_pending() const;
 
+  void check_push();
+
+  void check_out();
+
   // Access output stream reader
   Reader& reader() { return output_.reader(); }
   const Reader& reader() const { return output_.reader(); }
@@ -42,4 +47,17 @@ public:
 
 private:
   ByteStream output_; // the Reassembler writes to this ByteStream
+  struct Seg {
+    uint64_t first_index;
+    std::string data;
+    bool operator< ( const Seg& other ) const {
+      return first_index < other.first_index;
+    }
+    Seg(uint64_t f, const std::string& d) : first_index(f), data(d) {}; 
+  };
+  std::set<Seg> segments_ {};
+  uint64_t bytes_waiting_ {};
+  uint64_t first_unpoped_index_ {};
+  uint64_t first_unassembled_index_ {};
+  uint64_t final_index_ = 1000000000000000000;
 };
