@@ -50,11 +50,7 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
   }
 
   segments_.insert( Seg( first_index, data ) );
-  bytes_waiting_ += data.size();
-
-  cout << first_index << " " << data.size() << endl;
-  cout << "bytes_waiting: " << bytes_waiting_ << endl;
-  
+  bytes_waiting_ += data.size(); 
   check_push();
 }
 
@@ -79,5 +75,4 @@ void Reassembler::check_push() {
       break;
     }
   }
-  cout << "first_unassembled_index_: " << first_unassembled_index_ << endl;
 } 
