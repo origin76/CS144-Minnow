@@ -36,8 +36,6 @@ public:
 
   void check_push();
 
-  void check_out();
-
   // Access output stream reader
   Reader& reader() { return output_.reader(); }
   const Reader& reader() const { return output_.reader(); }
