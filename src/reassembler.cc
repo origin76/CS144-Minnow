@@ -5,7 +5,6 @@ using namespace std;
 
 void Reassembler::insert( uint64_t first_index, string data, bool is_last_substring )
 {
-  cout << first_index << " " << data.size() << endl;
   uint64_t last_index = first_index + data.size();
   uint64_t first_unacceptable = first_unassembled_index_ + output_.writer().available_capacity();
   if ( is_last_substring ) {

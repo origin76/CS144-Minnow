@@ -8,7 +8,7 @@ class TCPReceiver
 {
 public:
   // Construct with given Reassembler
-  explicit TCPReceiver( Reassembler&& reassembler ) : reassembler_( std::move( reassembler ) ) {}
+  explicit TCPReceiver( Reassembler&& reassembler ) :  reassembler_( std::move( reassembler ) ) , ISN() {}
 
   /*
    * The TCPReceiver receives TCPSenderMessages, inserting their payload into the Reassembler
@@ -27,4 +27,8 @@ public:
 
 private:
   Reassembler reassembler_;
+  std::optional<Wrap32> ISN {};
+  uint64_t cp {};
+  std::optional<uint64_t> FIN_idx {};
+  bool RST_flag {};
 };

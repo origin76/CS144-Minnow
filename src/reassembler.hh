@@ -57,5 +57,5 @@ private:
   uint64_t bytes_waiting_ {};
   uint64_t first_unpoped_index_ {};
   uint64_t first_unassembled_index_ {};
-  uint64_t final_index_ = 1000000000000000000;
+  uint64_t final_index_ = INT64_MAX;
 };
