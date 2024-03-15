@@ -29,6 +29,4 @@ private:
   Reassembler reassembler_;
   std::optional<Wrap32> ISN {};
   uint64_t cp {};
-  std::optional<uint64_t> FIN_idx {};
-  bool RST_flag {};
 };

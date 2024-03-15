@@ -6,7 +6,6 @@ using namespace std;
 void TCPReceiver::receive( TCPSenderMessage message )
 {
   if ( message.RST ) {
-    RST_flag = true;
     reassembler_.reader().set_error();
   }
   if ( message.SYN ) {
@@ -18,20 +17,12 @@ void TCPReceiver::receive( TCPSenderMessage message )
       stream_idx -= 1;
     }
     auto old_cnt = reassembler_.writer().bytes_pushed();
-    auto old_pending = reassembler_.bytes_pending();
     reassembler_.insert( stream_idx, message.payload, message.FIN );
     auto offset = reassembler_.writer().bytes_pushed() - old_cnt;
     cp += offset;
     cp += message.SYN;
-    if ( message.FIN
-         && ( ( reassembler_.bytes_pending() != old_pending ) || ( offset != 0 )
-              || message.payload.size() == 0 ) ) {
-      FIN_idx = stream_idx + message.payload.size() + ( message.SYN || message.FIN );
-    }
-    if ( FIN_idx.has_value() ) {
-      if ( cp == FIN_idx.value() ) {
-        cp += 1;
-      }
+    if (reassembler_.writer().is_closed()){
+      cp += 1;
     }
   }
 }
@@ -39,8 +30,7 @@ void TCPReceiver::receive( TCPSenderMessage message )
 TCPReceiverMessage TCPReceiver::send() const
 {
   TCPReceiverMessage message;
-  if ( !ISN.has_value() ) {
-  } else {
+  if ( ISN.has_value() ) {
     message.ackno = Wrap32::wrap( cp, ISN.value() );
   }
   if ( reassembler_.reader().has_error() || reassembler_.writer().has_error()) {
