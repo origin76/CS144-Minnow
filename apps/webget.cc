@@ -1,5 +1,5 @@
 #include "socket.hh"
-
+#include "tcp_minnow_socket.hh"
 #include <cstdlib>
 #include <iostream>
 #include <span>
@@ -10,7 +10,7 @@ using namespace std;
 void get_URL( const string& host, const string& path )
 { 
   Address addr(host,"http");
-  TCPSocket sock;
+  CS144TCPSocket sock;
   sock.connect(addr);
   string req = "GET " + path + " HTTP/1.1\r\nHost: " + host + "\r\n" + "Connection: close\r\n\r\n";
   sock.write(req);
