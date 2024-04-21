@@ -35,4 +35,20 @@ public:
 private:
   // The router's collection of network interfaces
   std::vector<std::shared_ptr<NetworkInterface>> _interfaces {};
+
+  std::queue<InternetDatagram> datagram_buffer_ {};
+
+  bool match( InternetDatagram& d );
+
+  struct TrieNode
+  {
+    TrieNode() : interface_num(std::nullopt),next_hop(std::nullopt),left(nullptr),right(nullptr) {};
+
+    std::optional<size_t> interface_num;
+    std::optional<Address> next_hop;
+    std::unique_ptr<TrieNode> left;
+    std::unique_ptr<TrieNode> right;
+  };
+
+  std::unique_ptr<TrieNode> root_ {nullptr};
 };

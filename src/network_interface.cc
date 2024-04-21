@@ -26,7 +26,7 @@ NetworkInterface::NetworkInterface( string_view name,
 //! may also be another host if directly connected to the same network as the destination) Note: the Address type
 //! can be converted to a uint32_t (raw 32-bit IP address) by using the Address::ipv4_numeric() method.
 void NetworkInterface::send_datagram( const InternetDatagram& dgram, const Address& next_hop )
-{
+{ 
   if ( arp_table_.contains( next_hop.ipv4_numeric() ) ) {
     EthernetFrame frame{
       .header = {
@@ -38,6 +38,15 @@ void NetworkInterface::send_datagram( const InternetDatagram& dgram, const Addre
     };
     transmit( frame );
   } else {
+    EthernetFrame wait_frame{
+      .header = {
+        .dst = ETHERNET_BROADCAST,
+        .src = ethernet_address_,
+        .type = wait_frame.header.TYPE_IPv4,
+      },
+      .payload = serialize(dgram),
+    };
+    wait_queue_.emplace( next_hop.ipv4_numeric(), wait_frame );
     bool f = true;
     if ( retransmit_arp_queue_.contains( next_hop.ipv4_numeric() ) ) {
       if ( timer_ - retransmit_arp_queue_[next_hop.ipv4_numeric()] < 5000 ) {
@@ -61,26 +70,14 @@ void NetworkInterface::send_datagram( const InternetDatagram& dgram, const Addre
       .payload = serialize(arp_msg),
       };
       transmit( arp_frame );
-      retransmit_arp_queue_.erase( next_hop.ipv4_numeric() );
       retransmit_arp_queue_.emplace( next_hop.ipv4_numeric(), timer_ );
     }
-    EthernetFrame wait_frame{
-      .header = {
-        .dst = ETHERNET_BROADCAST,
-        .src = ethernet_address_,
-        .type = wait_frame.header.TYPE_IPv4,
-      },
-      .payload = serialize(dgram),
-    };
-    wait_queue_.emplace( next_hop.ipv4_numeric(), wait_frame );
   }
-  (void)dgram;
-  (void)next_hop;
 }
 
 //! \param[in] frame the incoming Ethernet frame
 void NetworkInterface::recv_frame( const EthernetFrame& frame )
-{
+{ 
   if ( frame.header.dst != ethernet_address_ && frame.header.dst != ETHERNET_BROADCAST ) {
     return;
   }
@@ -92,6 +89,8 @@ void NetworkInterface::recv_frame( const EthernetFrame& frame )
     }
     arp_timestamp_[timer_] = arp_msg.sender_ip_address;
     arp_table_[arp_msg.sender_ip_address] = arp_msg.sender_ethernet_address;
+    cout << "DEBUG : RECV ARP " << Address::from_ipv4_numeric(arp_msg.sender_ip_address).ip() << endl;
+    cout << "DEBUG WAITQ" << wait_queue_.size() << endl;
     if ( wait_queue_.contains( arp_msg.sender_ip_address ) ) {
       auto range = wait_queue_.equal_range( arp_msg.sender_ip_address );
       for ( auto i = range.first; i != range.second; i++ ) {
